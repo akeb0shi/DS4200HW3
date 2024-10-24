@@ -1,5 +1,5 @@
 // Load the Iris data from the CSV file
-d3.csv("'/Users/dylankao/Desktop/DS4200/DS HW3/Iris dataset.csv'").then(function(data) {
+d3.csv("Iris dataset.csv").then(function(data) {
     // Convert string values to numbers
     data.forEach(function(d) {
         d.PetalLength = +d.PetalLength;
