@@ -100,7 +100,7 @@ d3.csv("iris.csv").then(function(data) {
     const height = 500 - margin.top - margin.bottom;
 
     // Create the SVG container for the box plot
-    const svg2 = d3.select("#boxplot")
+    const svg = d3.select("#boxplot")
         .append("svg")
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
@@ -122,12 +122,12 @@ d3.csv("iris.csv").then(function(data) {
         .range([height, 0]);
 
     // Add x-axis
-    svg2.append("g")
+    svg.append("g")
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(xScale));
 
     // Add y-axis
-    svg2.append("g")
+    svg.append("g")
         .call(d3.axisLeft(yScale));
 
     // Define rollup function to calculate quartiles
@@ -151,7 +151,7 @@ d3.csv("iris.csv").then(function(data) {
         const upperWhisker = Math.min(quartiles.q3 + 1.5 * quartiles.iqr, d3.max(data, d => d.PetalLength));
 
         // Draw the vertical lines (whiskers)
-        svg2.append("line")
+        svg.append("line")
             .attr("x1", x + boxWidth / 2)
             .attr("x2", x + boxWidth / 2)
             .attr("y1", yScale(lowerWhisker))
@@ -159,7 +159,7 @@ d3.csv("iris.csv").then(function(data) {
             .attr("stroke", "black");
 
         // Draw the rectangle for the box
-        svg2.append("rect")
+        svg.append("rect")
             .attr("x", x)
             .attr("y", yScale(quartiles.q3))  // Start at Q3
             .attr("width", boxWidth)
@@ -167,7 +167,7 @@ d3.csv("iris.csv").then(function(data) {
             .attr("fill", "#69b3a2");
 
         // Draw the median line
-        svg2.append("line")
+        svg.append("line")
             .attr("x1", x)
             .attr("x2", x + boxWidth)
             .attr("y1", yScale(quartiles.median))
@@ -176,14 +176,14 @@ d3.csv("iris.csv").then(function(data) {
     });
 
     // Add x-axis label
-    svg2.append("text")
+    svg.append("text")
         .attr("x", width / 2)
         .attr("y", height + margin.bottom)
         .style("text-anchor", "middle")
         .text("Species");
 
     // Add y-axis label
-    svg2.append("text")
+    svg.append("text")
         .attr("transform", "rotate(-90)")
         .attr("x", -height / 2)
         .attr("y", -margin.left + 15)
