@@ -8,7 +8,7 @@ d3.csv("iris.csv").then(function(data) {
 
     // Scatter plot
     const margin = {top: 20, right: 30, bottom: 40, left: 50};
-    const width = 960 - margin.left - margin.right;
+    const width = 1200 - margin.left - margin.right;
     const height = 500 - margin.top - margin.bottom;
 
     // Create the SVG container for the scatter plot
