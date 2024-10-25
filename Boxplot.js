@@ -40,6 +40,21 @@ d3.csv("iris.csv").then(function(data) {
     svg.append("g")
         .call(d3.axisLeft(yScale));
 
+    // Add x-axis label
+    svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", height + margin.bottom)
+        .style("text-anchor", "middle")
+        .text("Species");
+
+    // Add y-axis label
+    svg.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -height / 2)
+        .attr("y", -margin.left + 15)
+        .style("text-anchor", "middle")
+        .text("Petal Length");
+
     // Define rollup function to calculate quartiles
     const rollupFunction = function(groupData) {
         const values = groupData.map(d => d.PetalLength).sort(d3.ascending);
@@ -49,6 +64,7 @@ d3.csv("iris.csv").then(function(data) {
         const iqr = q3 - q1;
         return { q1, median, q3, iqr };
     };
+
 
     // grouping the data by species and then calculating the quartiles for each species using rollup
     const quartilesBySpecies = d3.rollup(data, rollupFunction, d => d.Species);
@@ -86,19 +102,4 @@ d3.csv("iris.csv").then(function(data) {
             .attr("y2", yScale(quartiles.median))
             .attr("stroke", "black");
     });
-
-    // Add x-axis label
-    svg.append("text")
-        .attr("x", width / 2)
-        .attr("y", height + margin.bottom)
-        .style("text-anchor", "middle")
-        .text("Species");
-
-    // Add y-axis label
-    svg.append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("x", -height / 2)
-        .attr("y", -margin.left + 15)
-        .style("text-anchor", "middle")
-        .text("Petal Length");
 });
