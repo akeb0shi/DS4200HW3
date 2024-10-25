@@ -19,18 +19,17 @@ d3.csv("iris.csv").then(function(data) {
         .attr("transform", `translate(${margin.left},${margin.top})`);
 
     // Set up scales for x and y axes
-    const xScale = d3.scaleBand()
-        .domain(["setosa", "versicolor", "virginica"])
-        .range([0, width])
-        .paddingInner(1)
-        .paddingOuter(0.5);
+    const xScale = d3.scaleLinear()
+        .domain([d3.min(data, d => d.PetalLength) - 1, d3.max(data, d => d.PetalLength) + 1])
+        .range([0, width]);
 
     const yScale = d3.scaleLinear()
-        .domain([
-            d3.min(data, d => d.PetalLength) - 1,  // Add some padding to account for whiskers
-            d3.max(data, d => d.PetalLength) + 1
-        ])
+        .domain([d3.min(data, d => d.PetalWidth) - 0.5, d3.max(data, d => d.PetalWidth) + 0.5])
         .range([height, 0]);
+
+    const colorScale = d3.scaleOrdinal()
+        .domain(["setosa", "versicolor", "virginica"])
+        .range(d3.schemeCategory10);
 
     // Add x-axis
     svg.append("g")
