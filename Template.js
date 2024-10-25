@@ -91,6 +91,9 @@ iris.then(function(data) {
         .text(d => d);
 });
 
+
+
+// BOXPLOT
 iris.then(function(data) {
     // Convert string values to numbers
     data.forEach(function(d) {
@@ -145,7 +148,6 @@ iris.then(function(data) {
         .style("text-anchor", "middle")
         .text("Petal Length");
 
-    // Define rollup function to calculate quartiles
     const rollupFunction = function(groupData) {
         const values = groupData.map(d => d.PetalLength).sort(d3.ascending);
         const q1 = d3.quantile(values, 0.25);
