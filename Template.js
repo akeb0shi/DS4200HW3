@@ -1,20 +1,17 @@
-// Load the Iris data
-const iris = d3.csv("Iris dataset.csv");
-
-// Once the data is loaded, proceed with plotting
-iris.then(function(data) {
+// Load the Iris data from the CSV file
+d3.csv("iris.csv").then(function(data) {
     // Convert string values to numbers
     data.forEach(function(d) {
         d.PetalLength = +d.PetalLength;
         d.PetalWidth = +d.PetalWidth;
     });
 
-    // Define the dimensions and margins for the SVG
+    // Scatter plot
     const margin = {top: 20, right: 30, bottom: 40, left: 50};
     const width = 960 - margin.left - margin.right;
     const height = 500 - margin.top - margin.bottom;
 
-    // Create the SVG container
+    // Create the SVG container for the scatter plot
     const svg = d3.select("#scatterplot")
         .append("svg")
         .attr("width", width + margin.left + margin.right)
@@ -31,9 +28,8 @@ iris.then(function(data) {
         .domain([d3.min(data, d => d.PetalWidth) - 0.5, d3.max(data, d => d.PetalWidth) + 0.5])
         .range([height, 0]);
 
-    // Color scale for species
     const colorScale = d3.scaleOrdinal()
-        .domain(data.map(d => d.Species))
+        .domain(["setosa", "versicolor", "virginica"])
         .range(d3.schemeCategory10);
 
     // Add x-axis
@@ -91,21 +87,19 @@ iris.then(function(data) {
         .text(d => d);
 });
 
-
-
-// BOXPLOT
-iris.then(function(data) {
+// Boxplot
+d3.csv("iris.csv").then(function(data) {
     // Convert string values to numbers
     data.forEach(function(d) {
         d.PetalLength = +d.PetalLength;
     });
 
-    // Define the dimensions and margins for the SVG
+    // Define the dimensions and margins for the box plot
     const margin = {top: 20, right: 30, bottom: 40, left: 50};
     const width = 960 - margin.left - margin.right;
     const height = 500 - margin.top - margin.bottom;
 
-    // Create the SVG container
+    // Create the SVG container for the box plot
     const svg = d3.select("#boxplot")
         .append("svg")
         .attr("width", width + margin.left + margin.right)
@@ -133,6 +127,47 @@ iris.then(function(data) {
     svg.append("g")
         .call(d3.axisLeft(yScale));
 
+    // Define rollup function to calculate quartiles
+    const rollupFunction = function(groupData) {
+        const values = groupData.map(d => d.PetalLength).sort(d3.ascending);
+        const q1 = d3.quantile(values, 0.25);
+        const median = d3.quantile(values, 0.5);
+        const q3 = d3.quantile(values, 0.75);
+        const iqr = q3 - q1;
+        return { q1, median, q3, iqr };
+    };
+
+    const quartilesBySpecies = d3.rollup(data, rollupFunction, d => d.Species);
+
+    quartilesBySpecies.forEach((quartiles, species) => {
+        const x = xScale(species);
+        const boxWidth = xScale.bandwidth();
+
+        // Draw the vertical lines (whiskers)
+        svg.append("line")
+            .attr("x1", x + boxWidth / 2)
+            .attr("x2", x + boxWidth / 2)
+            .attr("y1", yScale(quartiles.q1 - 1.5 * quartiles.iqr))
+            .attr("y2", yScale(quartiles.q3 + 1.5 * quartiles.iqr))
+            .attr("stroke", "black");
+
+        // Draw the rectangle for the box
+        svg.append("rect")
+            .attr("x", x)
+            .attr("y", yScale(quartiles.q3))
+            .attr("width", boxWidth)
+            .attr("height", yScale(quartiles.q1) - yScale(quartiles.q3))
+            .attr("fill", "#69b3a2");
+
+        // Draw the median line
+        svg.append("line")
+            .attr("x1", x)
+            .attr("x2", x + boxWidth)
+            .attr("y1", yScale(quartiles.median))
+            .attr("y2", yScale(quartiles.median))
+            .attr("stroke", "black");
+    });
+
     // Add x-axis label
     svg.append("text")
         .attr("x", width / 2)
@@ -147,45 +182,4 @@ iris.then(function(data) {
         .attr("y", -margin.left + 15)
         .style("text-anchor", "middle")
         .text("Petal Length");
-
-    const rollupFunction = function(groupData) {
-        const values = groupData.map(d => d.PetalLength).sort(d3.ascending);
-        const q1 = d3.quantile(values, 0.25);
-        const median = d3.quantile(values, 0.5);
-        const q3 = d3.quantile(values, 0.75);
-        const iqr = q3 - q1;  // Interquartile range
-        return { q1, median, q3, iqr };
-    };
-
-    // Roll up data by species
-    const quartilesBySpecies = d3.rollup(data, rollupFunction, d => d.Species);
-
-    quartilesBySpecies.forEach((quartiles, species) => {
-        const x = xScale(species);
-        const boxWidth = xScale.bandwidth();
-
-        // Draw vertical lines (whiskers)
-        svg.append("line")
-            .attr("x1", x + boxWidth / 2)
-            .attr("x2", x + boxWidth / 2)
-            .attr("y1", yScale(quartiles.q1 - 1.5 * quartiles.iqr))  // Lower whisker
-            .attr("y2", yScale(quartiles.q3 + 1.5 * quartiles.iqr))  // Upper whisker
-            .attr("stroke", "black");
-
-        // Draw the rectangular box (Q1 to Q3)
-        svg.append("rect")
-            .attr("x", x)
-            .attr("y", yScale(quartiles.q3))  // Start at Q3
-            .attr("width", boxWidth)
-            .attr("height", yScale(quartiles.q1) - yScale(quartiles.q3))  // Box height from Q1 to Q3
-            .attr("fill", "#69b3a2");
-
-        // Draw median line
-        svg.append("line")
-            .attr("x1", x)
-            .attr("x2", x + boxWidth)
-            .attr("y1", yScale(quartiles.median))  // Median line
-            .attr("y2", yScale(quartiles.median))
-            .attr("stroke", "black");
-    });
 });
