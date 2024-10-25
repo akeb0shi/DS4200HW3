@@ -50,8 +50,10 @@ d3.csv("iris.csv").then(function(data) {
         return { q1, median, q3, iqr };
     };
 
+    // grouping the data by species and then calculating the quartiles for each species using rollup
     const quartilesBySpecies = d3.rollup(data, rollupFunction, d => d.Species);
 
+    // iterating through the result of rollup 
     quartilesBySpecies.forEach((quartiles, species) => {
         const x = xScale(species);
         const boxWidth = xScale.bandwidth();
