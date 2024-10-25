@@ -12,7 +12,7 @@ d3.csv("iris.csv").then(function(data) {
     const height = 500 - margin.top - margin.bottom;
 
     // Create the SVG container for the scatter plot
-    const svg = d3.select("#scatterplot")
+    const svg = d3.select("#boxplot")
         .append("svg")
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
