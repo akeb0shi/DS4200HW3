@@ -115,7 +115,10 @@ d3.csv("iris.csv").then(function(data) {
         .paddingOuter(0.5);
 
     const yScale = d3.scaleLinear()
-        .domain([0, d3.max(data, d => d.PetalLength)])
+        .domain([
+            d3.min(data, d => d.PetalLength) - 1,  // Add some padding to account for whiskers
+            d3.max(data, d => d.PetalLength) + 1
+        ])
         .range([height, 0]);
 
     // Add x-axis
@@ -143,20 +146,24 @@ d3.csv("iris.csv").then(function(data) {
         const x = xScale(species);
         const boxWidth = xScale.bandwidth();
 
+        // Calculate lower and upper whiskers
+        const lowerWhisker = Math.max(quartiles.q1 - 1.5 * quartiles.iqr, d3.min(data, d => d.PetalLength));
+        const upperWhisker = Math.min(quartiles.q3 + 1.5 * quartiles.iqr, d3.max(data, d => d.PetalLength));
+
         // Draw the vertical lines (whiskers)
         svg.append("line")
             .attr("x1", x + boxWidth / 2)
             .attr("x2", x + boxWidth / 2)
-            .attr("y1", yScale(quartiles.q1 - 1.5 * quartiles.iqr))
-            .attr("y2", yScale(quartiles.q3 + 1.5 * quartiles.iqr))
+            .attr("y1", yScale(lowerWhisker))
+            .attr("y2", yScale(upperWhisker))
             .attr("stroke", "black");
 
         // Draw the rectangle for the box
         svg.append("rect")
             .attr("x", x)
-            .attr("y", yScale(quartiles.q3))
+            .attr("y", yScale(quartiles.q3))  // Start at Q3
             .attr("width", boxWidth)
-            .attr("height", yScale(quartiles.q1) - yScale(quartiles.q3))
+            .attr("height", Math.abs(yScale(quartiles.q1) - yScale(quartiles.q3)))  // Box height from Q1 to Q3
             .attr("fill", "#69b3a2");
 
         // Draw the median line
