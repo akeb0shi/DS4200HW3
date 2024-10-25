@@ -15,10 +15,9 @@ d3.csv("iris.csv").then(function(data) {
     // Create the SVG container for the box plot
     const svg = d3.select("#boxplot")
         .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform", `translate(${margin.left},${margin.top})`);
+        .attr("width", width)
+        .attr("height", height)
+        .style("background", "white")
 
     // Set up scales for x and y axes
     const xScale = d3.scaleLinear()
@@ -64,8 +63,8 @@ d3.csv("iris.csv").then(function(data) {
         const q1 = d3.quantile(values, 0.25);
         const median = d3.quantile(values, 0.5);
         const q3 = d3.quantile(values, 0.75);
-        const iqr = q3 - q1;
-        return { q1, median, q3, iqr };
+        // const iqr = q3 - q1;
+        return { q1, median, q3 };
     };
 
 
@@ -95,7 +94,8 @@ d3.csv("iris.csv").then(function(data) {
             .attr("y", yScale(quartiles.q3))  // Start at Q3
             .attr("width", boxWidth)
             .attr("height", Math.abs(yScale(quartiles.q1) - yScale(quartiles.q3)))  // Box height from Q1 to Q3
-            .attr("fill", "#69b3a2");
+            .attr("fill", "#69b3a2")
+            .attr("stroke", "black");
 
         // Draw the median line
         svg.append("line")
