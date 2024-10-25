@@ -38,6 +38,7 @@ d3.csv("iris.csv").then(function(data) {
 
     // Add y-axis
     svg.append("g")
+        .attr("transform", `translate(${margin.left}, 0)`)
         .call(d3.axisLeft(yScale));
 
     // Add x-axis label
