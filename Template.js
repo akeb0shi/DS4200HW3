@@ -88,7 +88,7 @@ d3.csv("Iris dataset.csv").then(function(data) {
 });
 
 // Boxplot
-d3.csv("iris.csv").then(function(data) {
+d3.csv("Iris dataset.csv").then(function(data) {
     // Convert string values to numbers
     data.forEach(function(d) {
         d.PetalLength = +d.PetalLength;
