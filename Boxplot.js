@@ -1,84 +1,88 @@
-// Set up margins and canvas size
-const margin = {top: 20, right: 30, bottom: 40, left: 40};
-const width = 500 - margin.left - margin.right;
-const height = 400 - margin.top - margin.bottom;
-
-// Set up the SVG canvas in the #boxplot div
-const svg = d3.select("#boxplot")
-    .append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-    .attr("transform", `translate(${margin.left},${margin.top})`);
-
-// Load the data (adjust the path if necessary)
-d3.csv("path_to_your_file.csv").then(data => {
-    // Convert the data: strings to numbers and handle species correctly
-    data.forEach(d => {
+// Load the Iris data from the CSV file
+d3.csv("iris.csv").then(function(data) {
+    // Convert string values to numbers
+    data.forEach(function(d) {
         d.PetalLength = +d.PetalLength;
-        d.Species = d.Species.trim();  // Ensure no extra whitespace in species names
+        d.PetalWidth = +d.PetalWidth;
     });
 
-    // Scales
-    const xScale = d3.scaleBand()
-        .domain(["Iris-setosa", "Iris-versicolor", "Iris-virginica"])
-        .range([0, width])
-        .padding(0.2);
+    // Scatter plot
+    const margin = {top: 20, right: 30, bottom: 40, left: 50};
+    const width = 960 - margin.left - margin.right;
+    const height = 500 - margin.top - margin.bottom;
+
+    // Create the SVG container for the scatter plot
+    const svg = d3.select("#scatterplot")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    // Set up scales for x and y axes
+    const xScale = d3.scaleLinear()
+        .domain([d3.min(data, d => d.PetalLength) - 1, d3.max(data, d => d.PetalLength) + 1])
+        .range([0, width]);
 
     const yScale = d3.scaleLinear()
-        .domain([0, d3.max(data, d => d.PetalLength)]) // Adjust the domain if necessary
+        .domain([d3.min(data, d => d.PetalWidth) - 0.5, d3.max(data, d => d.PetalWidth) + 0.5])
         .range([height, 0]);
 
-    // Add axes
+    const colorScale = d3.scaleOrdinal()
+        .domain(["setosa", "versicolor", "virginica"])
+        .range(d3.schemeCategory10);
+
+    // Add x-axis
     svg.append("g")
-        .attr("transform", `translate(0, ${height})`)
+        .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(xScale));
 
+    // Add y-axis
     svg.append("g")
         .call(d3.axisLeft(yScale));
 
-    // Helper function to calculate quartiles and IQR
-    function rollupFunction(values) {
-        values.sort((a, b) => a.PetalLength - b.PetalLength); // Sort by PetalLength
+    // Add circles for each data point
+    svg.selectAll("circle")
+        .data(data)
+        .enter()
+        .append("circle")
+        .attr("cx", d => xScale(d.PetalLength))
+        .attr("cy", d => yScale(d.PetalWidth))
+        .attr("r", 5)
+        .style("fill", d => colorScale(d.Species));
 
-        const q1 = d3.quantile(values, 0.25, d => d.PetalLength);
-        const median = d3.quantile(values, 0.5, d => d.PetalLength);
-        const q3 = d3.quantile(values, 0.75, d => d.PetalLength);
-        const iqr = q3 - q1;
+    // Add x-axis label
+    svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", height + margin.bottom)
+        .style("text-anchor", "middle")
+        .text("Petal Length");
 
-        return {q1: q1, median: median, q3: q3, iqr: iqr};
-    }
+    // Add y-axis label
+    svg.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -height / 2)
+        .attr("y", -margin.left + 15)
+        .style("text-anchor", "middle")
+        .text("Petal Width");
 
-    // Calculate quartiles by species
-    const quartilesBySpecies = d3.rollup(data, rollupFunction, d => d.Species);
+    // Add legend
+    const legend = svg.selectAll(".legend")
+        .data(colorScale.domain())
+        .enter().append("g")
+        .attr("class", "legend")
+        .attr("transform", (d, i) => `translate(0,${i * 20})`);
 
-    // Draw the boxplots
-    quartilesBySpecies.forEach((quartiles, species) => {
-        const x = xScale(species);
-        const boxWidth = xScale.bandwidth();
+    legend.append("rect")
+        .attr("x", width - 18)
+        .attr("width", 18)
+        .attr("height", 18)
+        .style("fill", colorScale);
 
-        // Vertical line (whiskers)
-        svg.append("line")
-            .attr("x1", x + boxWidth / 2)
-            .attr("x2", x + boxWidth / 2)
-            .attr("y1", yScale(quartiles.q1 - 1.5 * quartiles.iqr))
-            .attr("y2", yScale(quartiles.q3 + 1.5 * quartiles.iqr))
-            .attr("stroke", "black");
-
-        // Box (from q1 to q3)
-        svg.append("rect")
-            .attr("x", x)
-            .attr("y", yScale(quartiles.q3))
-            .attr("width", boxWidth)
-            .attr("height", yScale(quartiles.q1) - yScale(quartiles.q3))
-            .attr("fill", "lightgray");
-
-        // Median line
-        svg.append("line")
-            .attr("x1", x)
-            .attr("x2", x + boxWidth)
-            .attr("y1", yScale(quartiles.median))
-            .attr("y2", yScale(quartiles.median))
-            .attr("stroke", "black");
-    });
+    legend.append("text")
+        .attr("x", width - 24)
+        .attr("y", 9)
+        .attr("dy", ".35em")
+        .style("text-anchor", "end")
+        .text(d => d);
 });
